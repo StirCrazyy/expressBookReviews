@@ -177,4 +177,130 @@ public_users.get('/review/:isbn',function (req, res) {
     }
 });
 
+// Get the book list available in the shop (using async/await)
+public_users.get('/async', async (req, res) => {
+    try {
+        // Create a promise to get all books
+        const getAllBooks = () => {
+            return new Promise((resolve, reject) => {
+                try {
+                    const formattedBooks = JSON.parse(JSON.stringify(books, null, 4));
+                    resolve(formattedBooks);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        };
+
+        // Wait for the promise to resolve
+        const booksList = await getAllBooks();
+
+        return res.status(200).json({
+            message: "Books retrieved successfully",
+            books: booksList
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            message: "Error retrieving books",
+            error: error.message
+        });
+    }
+});
+
+// Alternative Promise-based implementation using .then()
+public_users.get('/promise', (req, res) => {
+    // Create a promise to get all books
+    const getAllBooks = new Promise((resolve, reject) => {
+        try {
+            const formattedBooks = JSON.parse(JSON.stringify(books, null, 4));
+            resolve(formattedBooks);
+        } catch (error) {
+            reject(error);
+        }
+    });
+
+    // Handle the promise
+    getAllBooks
+        .then(booksList => {
+            return res.status(200).json({
+                message: "Books retrieved successfully",
+                books: booksList
+            });
+        })
+        .catch(error => {
+            return res.status(500).json({
+                message: "Error retrieving books",
+                error: error.message
+            });
+        });
+});
+
+// Get book by ISBN using async/await
+public_users.get('/async/isbn/:isbn', async (req, res) => {
+    try {
+        const isbn = req.params.isbn;
+
+        // Create a promise to get book by ISBN
+        const getBookByISBN = (isbn) => {
+            return new Promise((resolve, reject) => {
+                try {
+                    if (books[isbn]) {
+                        resolve(books[isbn]);
+                    } else {
+                        reject(new Error(`Book not found with ISBN: ${isbn}`));
+                    }
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        };
+
+        // Wait for the promise to resolve
+        const book = await getBookByISBN(isbn);
+
+        return res.status(200).json({
+            message: "Book found successfully",
+            book: book
+        });
+
+    } catch (error) {
+        return res.status(404).json({
+            message: error.message
+        });
+    }
+});
+
+// Get book by ISBN using Promise.then()
+public_users.get('/promise/isbn/:isbn', (req, res) => {
+    const isbn = req.params.isbn;
+
+    // Create a promise to get book by ISBN
+    const getBookByISBN = new Promise((resolve, reject) => {
+        try {
+            if (books[isbn]) {
+                resolve(books[isbn]);
+            } else {
+                reject(new Error(`Book not found with ISBN: ${isbn}`));
+            }
+        } catch (error) {
+            reject(error);
+        }
+    });
+
+    // Handle the promise
+    getBookByISBN
+        .then(book => {
+            return res.status(200).json({
+                message: "Book found successfully",
+                book: book
+            });
+        })
+        .catch(error => {
+            return res.status(404).json({
+                message: error.message
+            });
+        });
+});
+
 module.exports.general = public_users;
